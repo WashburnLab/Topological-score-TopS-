@@ -1,7 +1,7 @@
 library(shiny)
 
 shinyUI(pageWithSidebar(
-  headerPanel(div(HTML("<em>Topological Scores:TopS"))),  
+  headerPanel(div(HTML("<em>Topological Score:TOPS"))),  
   sidebarPanel(
     fileInput('file1', 'Choose a CSV File',
               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -39,8 +39,9 @@ shinyUI(pageWithSidebar(
     verbatimTextOutput("oid6"),
     tabPanel("hclust",plotOutput("plot2", height="600px")),
     verbatimTextOutput("oid7"),
-    tabPanel("hclust",plotOutput("plot3", height="600px"))    
-    
+    tabPanel("hclust",plotOutput("plot3", height="600px")),    
+    verbatimTextOutput("oid8"),
+    tabPanel("hclust",plotOutput("plot4", height="600px"))
   )
   
 ))

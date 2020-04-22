@@ -1,17 +1,21 @@
 #author: Mihaela E. Sardiu and Michael P. Washburn
 #Stowers Institute for Medical Research 
-#2-1-2018
+#8-1-2017
 
 library(shiny)
 #library(UsingR)
 library(gplots)
+library(ggplot2)
 library(stats)
 library(gridExtra)
+library(cluster)
+library(Rtsne)
+
 
 
 ######################################### Create topological scores ####################
 #File name can be change here: 
-y<-read.csv("input_file.csv")
+y<-read.csv("Table_CBX_NE_forTopS.csv")
 #y<-read.csv("DNArepair.csv")
 #y<-read.csv("yeast_data.csv")
 x<-data.frame((y[, 2:ncol(y)]))
@@ -128,7 +132,7 @@ shinyServer(function(input, output) {
     output$oid5 <- renderPrint({"Heatmap of correlations between baits using spectral counts:"})
     heatmap.2(d,dendrogram='none', margins=c(8,16),Rowv=FALSE, Colv=FALSE,trace='none',col=my_palette)
     dev.off()
-    pdf("plot_heatmap.pdf")
+    pdf("plot_heatmap1.pdf")
     heatmap.2(d,dendrogram='none', margins=c(8,16),Rowv=FALSE, Colv=FALSE,trace='none',col=my_palette)
     #dev.off()
   })
@@ -165,13 +169,38 @@ shinyServer(function(input, output) {
     plot(hc)
     dev.off()
     #pdf("plot1.pdf", width=as.numeric(input$w), height=as.numeric(input$h))
-    pdf("plot_TopS.pdf")
+    pdf("plot_ts.pdf")
     plot(hc)
     #dev.off()
     
     
   })
-             
+  
+  
+  output$plot4 <- renderPlot({
+    inFile <- input$file2
+    
+    if (is.null(inFile))
+      return(NULL)
+    y<-read.table(inFile$datapath, header=input$header)
+    x<-as.matrix((y[, 2:ncol(y)]))
+    tsne_out<-Rtsne(x, check_duplicates=FALSE, perplexety=30,theta=0.5, max_iter=5000)
+    tsne1 = tsne_out$Y[, 1]
+    tsne2 = tsne_out$Y[, 2]
+    km.norm<-kmeans(tsne_out$Y,3,iter.max=50000,nstart=10000,algorithm=c("Hartigan-Wong"))
+    cluster=factor(km.norm$cluster)
+    test<-data.frame(x,cluster=factor(km.norm$cluster))
+    output$oid8 <- renderPrint({"t-SNE plot:"})
+    hc<-ggplot(test, aes(tsne1, tsne2, color=cluster)) + geom_point()
+    plot(hc)
+    dev.off()
+    pdf("plot_tSNE.pdf")
+    plot(hc)
+    out <- cbind(y, clusterNum = km.norm$cluster,tsne1,tsne2)
+    head(out)
+    write.csv(out,'out_tsne.csv')
+})
+  
 })
 
 
